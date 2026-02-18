@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2025 MirraNET, Niklas Linz. All rights reserved.
+  ~
+  ~ This file is part of the MirraNET project and is licensed under the
+  ~ GNU Lesser General Public License v3.0 (LGPLv3).
+  ~
+  ~ You may use, distribute and modify this code under the terms
+  ~ of the LGPLv3 license. You should have received a copy of the
+  ~ license along with this file. If not, see <https://www.gnu.org/licenses/lgpl-3.0.html>
+  ~ or contact: niklas.linz@mirranet.de
+  -->
+
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>de.linzn</groupId>
+    <artifactId>evolution-api-java</artifactId>
+    <version>0.0.1</version>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    <repositories>
+        <repository>
+            <id>mvnrepository</id>
+            <name>mvnrepository</name>
+            <url>http://www.mvnrepository.com</url>
+        </repository>
+        <repository>
+            <id>MirraNET Builds Repository</id>
+            <url>https://builds.mirranet.de/plugin/repository/everything/</url>
+        </repository>
+    </repositories>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.0</version>
+                <configuration>
+                    <source>25</source>
+                    <target>25</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+            <version>4.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.rabbitmq</groupId>
+            <artifactId>amqp-client</artifactId>
+            <version>5.28.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20251224</version>
+        </dependency>
+    </dependencies>
+</project>
