@@ -12,10 +12,14 @@
 
 package de.linzn.evolutionApiJava;
 
+import de.linzn.evolutionApiJava.api.Jid;
 import de.linzn.evolutionApiJava.api.instances.ConnectionStatus;
 import de.linzn.evolutionApiJava.api.instances.FetchInstances;
+import de.linzn.evolutionApiJava.api.instances.GetContacts;
+import de.linzn.evolutionApiJava.api.messages.CreateStatusStorie;
 import de.linzn.evolutionApiJava.api.messages.SendText;
-import de.linzn.evolutionApiJava.api.Jid;
+import de.linzn.evolutionApiJava.api.messages.SendTypingPresence;
+import de.linzn.evolutionApiJava.api.messages.SetOnlineOffline;
 import de.linzn.evolutionApiJava.poolMQ.EventType;
 import de.linzn.evolutionApiJava.poolMQ.PoolManager;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -67,4 +71,19 @@ public class EvolutionApi {
         SendText.builder(this.webClient, this.instanceName, receiverJid, textMessage);
     }
 
+    public void sendTypingPresence(Jid receiverJid, int delay) {
+        SendTypingPresence.builder(this.webClient, this.instanceName, receiverJid, delay);
+    }
+
+    public void SetOnlineOffline(boolean online) {
+        SetOnlineOffline.builder(this.webClient, this.instanceName, online);
+    }
+
+    public void CreateStatusStorie(String content, ArrayList<Jid> contacts) {
+        CreateStatusStorie.builder(this.webClient, this.instanceName, content, contacts);
+    }
+
+    public ArrayList<Jid> getContacts() {
+        return GetContacts.builder(this.webClient, this.instanceName).getContacts();
+    }
 }

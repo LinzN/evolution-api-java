@@ -21,7 +21,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 
 public class PoolListener implements DeliverCallback {
-    private PoolManager poolManager;
+    private final PoolManager poolManager;
 
     public PoolListener(PoolManager poolManager) {
         this.poolManager = poolManager;

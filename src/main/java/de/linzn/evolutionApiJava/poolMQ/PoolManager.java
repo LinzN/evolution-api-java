@@ -27,10 +27,10 @@ import java.util.concurrent.TimeoutException;
 
 public class PoolManager {
     public final Map<String, ArrayList<DataListener>> listeners;
-    private EvolutionApi evolutionApi;
-    private ConnectionFactory factory;
+    private final EvolutionApi evolutionApi;
+    private final ConnectionFactory factory;
+    private final DeliverCallback deliverCallback;
     private Channel channel;
-    private DeliverCallback deliverCallback;
 
     public PoolManager(EvolutionApi evolutionApi, String hostname, String username, String password, String virtualHost) {
         this.evolutionApi = evolutionApi;
