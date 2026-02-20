@@ -12,25 +12,23 @@
 
 package de.linzn.evolutionApi.Test;
 
-import de.linzn.evolutionApiJava.DataListener;
 import de.linzn.evolutionApiJava.EvolutionApi;
-import de.linzn.evolutionApiJava.api.Jid;
-import de.linzn.evolutionApiJava.poolMQ.EventType;
+import de.linzn.evolutionApiJava.event.EventPriority;
+import de.linzn.evolutionApiJava.event.EventSettings;
+import de.linzn.evolutionApiJava.event.defaultEvents.NewMessageEvent;
 import org.json.JSONObject;
 
-public class TestListener implements DataListener {
+public class TestListener  {
     private EvolutionApi evolutionApi;
 
-    public TestListener(EvolutionApi evolutionApi){
+    public TestListener(EvolutionApi evolutionApi) {
         this.evolutionApi = evolutionApi;
     }
 
-    @Override
-    public void onReceive(EventType eventType, JSONObject data) {
-        System.out.println("EventType: " + eventType.name());
-        System.out.println("DATA:" + data);
-        Jid remoteJid = new Jid(data.getJSONObject("key").getString("remoteJid"));
-        String msg = data.getJSONObject("message").getString("conversation");
-        this.evolutionApi.sendTextMessage(remoteJid, "Mirror->" + msg);
+
+    @EventSettings(priority = EventPriority.NORMAL)
+    public void onNewMessage(NewMessageEvent event) {
+        JSONObject data = event.getMessage();
+        evolutionApi.getLogger().INFO("DATA:" + data);
     }
 }

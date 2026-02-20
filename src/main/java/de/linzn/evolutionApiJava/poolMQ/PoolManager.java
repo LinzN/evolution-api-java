@@ -16,25 +16,21 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DeliverCallback;
-import de.linzn.evolutionApiJava.DataListener;
 import de.linzn.evolutionApiJava.EvolutionApi;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 public class PoolManager {
-    public final Map<String, ArrayList<DataListener>> listeners;
-    private final EvolutionApi evolutionApi;
+    final EvolutionApi evolutionApi;
     private final ConnectionFactory factory;
     private final DeliverCallback deliverCallback;
     private Channel channel;
 
     public PoolManager(EvolutionApi evolutionApi, String hostname, String username, String password, String virtualHost) {
         this.evolutionApi = evolutionApi;
-        this.listeners = new HashMap<>();
         this.factory = new ConnectionFactory();
         this.factory.setHost(hostname);
         this.factory.setUsername(username);
@@ -51,9 +47,9 @@ public class PoolManager {
         Map<String, Object> args = new HashMap<>();
         args.put("x-queue-type", "quorum");
 
-        for (EventType eventType : EventType.values()) {
-            this.channel.queueDeclare(this.evolutionApi.getInstanceName() + "." + eventType.toEventId(), true, false, false, args);
-            channel.basicConsume(this.evolutionApi.getInstanceName() + "." + eventType.toEventId(), true, deliverCallback, consumerTag -> {
+        for (PoolApiType poolApiType : PoolApiType.values()) {
+            this.channel.queueDeclare(this.evolutionApi.getInstanceName() + "." + poolApiType.toEventId(), true, false, false, args);
+            channel.basicConsume(this.evolutionApi.getInstanceName() + "." + poolApiType.toEventId(), true, deliverCallback, consumerTag -> {
             });
         }
     }

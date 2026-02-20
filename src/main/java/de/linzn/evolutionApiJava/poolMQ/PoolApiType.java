@@ -12,7 +12,7 @@
 
 package de.linzn.evolutionApiJava.poolMQ;
 
-public enum EventType {
+public enum PoolApiType {
     APPLICATION_STARTUP,
     CALL,
     CHATS_DELETE,
@@ -40,8 +40,8 @@ public enum EventType {
     TYPEBOT_CHANGE_STATUS,
     TYPEBOT_START;
 
-    public static EventType fromEventId(String eventId) {
-        for (EventType val : values()) {
+    public static PoolApiType fromEventId(String eventId) {
+        for (PoolApiType val : values()) {
             if (val.toEventId().equalsIgnoreCase(eventId)) {
                 return val;
             }

@@ -14,7 +14,7 @@ package de.linzn.evolutionApiJava.poolMQ;
 
 import com.rabbitmq.client.DeliverCallback;
 import com.rabbitmq.client.Delivery;
-import de.linzn.evolutionApiJava.DataListener;
+import de.linzn.evolutionApiJava.event.defaultEvents.NewMessageEvent;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -31,7 +31,7 @@ public class PoolListener implements DeliverCallback {
     public void handle(String s, Delivery delivery) throws IOException {
         try {
             JSONObject input = new JSONObject(new String(delivery.getBody(), "UTF-8"));
-            EventType eventType = EventType.fromEventId(input.getString("event"));
+            PoolApiType poolApiType = PoolApiType.fromEventId(input.getString("event"));
             JSONObject data = new JSONObject();
             if (input.get("data") instanceof JSONObject) {
                 data = input.getJSONObject("data");
@@ -39,17 +39,12 @@ public class PoolListener implements DeliverCallback {
                 data.put("entries", input.getJSONArray("data"));
             }
 
-            if (this.poolManager.listeners.containsKey(eventType.name())) {
-                for (DataListener dataListener : this.poolManager.listeners.get(eventType.name())) {
-                    try {
-                        dataListener.onReceive(eventType, data);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+            if(poolApiType.equals(PoolApiType.MESSAGES_UPSERT)){
+                this.poolManager.evolutionApi.getEventHandler().fireEvent(new NewMessageEvent(data));
             }
+
         } catch (Exception e) {
-            e.printStackTrace();
+            this.poolManager.evolutionApi.getLogger().ERROR(e);
         }
     }
 }

@@ -13,14 +13,16 @@
 package de.linzn.evolutionApiJava;
 
 import de.linzn.evolutionApiJava.api.Jid;
-import de.linzn.evolutionApiJava.api.instances.ConnectionStatus;
-import de.linzn.evolutionApiJava.api.instances.FetchInstances;
-import de.linzn.evolutionApiJava.api.instances.GetContacts;
-import de.linzn.evolutionApiJava.api.messages.CreateStatusStorie;
-import de.linzn.evolutionApiJava.api.messages.SendText;
-import de.linzn.evolutionApiJava.api.messages.SendTypingPresence;
-import de.linzn.evolutionApiJava.api.messages.SetOnlineOffline;
-import de.linzn.evolutionApiJava.poolMQ.EventType;
+import de.linzn.evolutionApiJava.webCall.instances.ConnectionStatus;
+import de.linzn.evolutionApiJava.webCall.instances.FetchInstances;
+import de.linzn.evolutionApiJava.webCall.instances.GetContacts;
+import de.linzn.evolutionApiJava.webCall.messages.CreateStatusStorie;
+import de.linzn.evolutionApiJava.webCall.messages.SendText;
+import de.linzn.evolutionApiJava.webCall.messages.SendTypingPresence;
+import de.linzn.evolutionApiJava.webCall.messages.SetOnlineOffline;
+import de.linzn.evolutionApiJava.event.EventHandler;
+import de.linzn.evolutionApiJava.logger.DefaultLogger;
+import de.linzn.evolutionApiJava.logger.EvolutionLogger;
 import de.linzn.evolutionApiJava.poolMQ.PoolManager;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -32,22 +34,20 @@ public class EvolutionApi {
     private final WebClient webClient;
     private final PoolManager poolManager;
     private final String instanceName;
+    private final EventHandler eventHandler;
+    private EvolutionLogger logger;
 
 
     public EvolutionApi(String baseURL, String authKey, String instanceName, String rabbitMQHostName, String rabbitMQUsername, String rabbitMQPassword, String rabbotMQVirtualHost) {
+        this.instanceName = instanceName;
+        this.logger = new DefaultLogger();
+        this.eventHandler = new EventHandler(this);
         this.webClient = WebClient.builder().baseUrl(baseURL).defaultHeader("apikey", authKey).build();
         this.poolManager = new PoolManager(this, rabbitMQHostName, rabbitMQUsername, rabbitMQPassword, rabbotMQVirtualHost);
-        this.instanceName = instanceName;
     }
 
-    public void registerListener(EventType eventType, DataListener dataListener) {
-        if (!this.poolManager.listeners.containsKey(eventType.name())) {
-            ArrayList<DataListener> listener = new ArrayList<>();
-            this.poolManager.listeners.put(eventType.name(), listener);
-        }
-        if (!this.poolManager.listeners.get(eventType.name()).contains(dataListener)) {
-            this.poolManager.listeners.get(eventType.name()).add(dataListener);
-        }
+    public void registerLogger(EvolutionLogger evolutionLogger) {
+        this.logger = evolutionLogger;
     }
 
     public void enable() throws IOException, TimeoutException {
@@ -85,5 +85,13 @@ public class EvolutionApi {
 
     public ArrayList<Jid> getContacts() {
         return GetContacts.builder(this.webClient, this.instanceName).getContacts();
+    }
+
+    public EvolutionLogger getLogger() {
+        return logger;
+    }
+
+    public EventHandler getEventHandler() {
+        return eventHandler;
     }
 }

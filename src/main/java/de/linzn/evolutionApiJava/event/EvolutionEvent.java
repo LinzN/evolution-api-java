@@ -10,12 +10,23 @@
  * or contact: niklas.linz@mirranet.de
  */
 
-package de.linzn.evolutionApiJava;
+package de.linzn.evolutionApiJava.event;
 
-import de.linzn.evolutionApiJava.poolMQ.EventType;
-import org.json.JSONObject;
 
-public interface DataListener {
+public interface EvolutionEvent {
+    default boolean isCanceled() {
+        return false;
+    }
 
-    void onReceive(EventType eventType, JSONObject data);
+    default void setCanceled(boolean isCanceled) {
+        throw new IllegalArgumentException("Event cancel not supported");
+    }
+
+    default boolean isCancelable() {
+        return false;
+    }
+
+    default String getName() {
+        return this.getClass().getSimpleName();
+    }
 }

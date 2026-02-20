@@ -13,21 +13,35 @@
 package de.linzn.evolutionApi.Test;
 
 import de.linzn.evolutionApiJava.EvolutionApi;
-import de.linzn.evolutionApiJava.poolMQ.EventType;
+import de.linzn.evolutionApiJava.api.Jid;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.TimeoutException;
 
 public class TestApp {
 
     static void main() {
 
-        EvolutionApi evolutionApi = new EvolutionApi("http://10.50.0.22:8080", "xxx", "MirraAPI", "10.50.0.22", "user", "xxx", null);
+        EvolutionApi evolutionApi = new EvolutionApi("http://10.50.0.22:8080", "xxxx", "MirraAPI", "10.50.0.22", "user", "xxx", null);
         try {
             evolutionApi.enable();
-            evolutionApi.registerListener(EventType.MESSAGES_UPSERT, new TestListener(evolutionApi));
+            evolutionApi.getEventHandler().register(new TestListener(evolutionApi));
         } catch (IOException | TimeoutException e) {
             throw new RuntimeException(e);
+        }
+
+        evolutionApi.SetOnlineOffline(true);
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        //
+        evolutionApi.SetOnlineOffline(false);
+        ArrayList<Jid> jids = evolutionApi.getContacts();
+        for (Jid jid : jids) {
+            System.out.println(jid);
         }
 
         try {

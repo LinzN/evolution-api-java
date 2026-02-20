@@ -10,40 +10,45 @@
  * or contact: niklas.linz@mirranet.de
  */
 
-package de.linzn.evolutionApiJava.api.instances;
-
+package de.linzn.evolutionApiJava.webCall.messages;
 
 import de.linzn.evolutionApiJava.api.Jid;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Objects;
 
-
-public class GetContacts {
+public class SendText {
     private final WebClient webClient;
     private final String instanceName;
-    private ArrayList<Jid> contacts;
+    private final Jid receiverJid;
+    private final String text;
 
-
-    private GetContacts(WebClient webClient, String instanceName) {
+    private SendText(WebClient webClient, String instanceName, Jid receiverJid, String text) {
         this.webClient = webClient;
         this.instanceName = instanceName;
+        this.receiverJid = receiverJid;
+        this.text = text;
     }
 
-    public static GetContacts builder(WebClient webClient, String instanceName) {
-        return new GetContacts(webClient, instanceName).call();
+    public static SendText builder(WebClient webClient, String instanceName, Jid receiverJid, String text) {
+        return new SendText(webClient, instanceName, receiverJid, text).call();
     }
 
-    private GetContacts call() {
+    private SendText call() {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("number", this.receiverJid);
+        jsonObject.put("text", this.text);
+
         Mono<String> response = this.webClient.post()
-                .uri("/chat/findContacts/" + instanceName)
+                .uri("/message/sendText/" + instanceName)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(jsonObject.toString())
                 .retrieve()
                 .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> Mono.error(new RuntimeException("Server Error")))
                 .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new RuntimeException("Client Error")))
@@ -51,27 +56,11 @@ public class GetContacts {
                 .timeout(Duration.ofSeconds(3))
                 .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)));
 
-        JSONArray queryData = new JSONArray(Objects.requireNonNull(response.block()));
-
-        this.contacts = new ArrayList<>();
-        for (int i = 0; i < queryData.length(); i++) {
-            JSONObject obj = queryData.getJSONObject(i);
-            String jidString = obj.getString("remoteJid");
-            if (!jidString.contains("@lid") && jidString.contains("@s.whatsapp.net") && !jidString.contains(":")) {
-                Jid jid = new Jid(jidString);
-                contacts.add(jid);
-            }
-
-        }
+        this.fill(new JSONObject(Objects.requireNonNull(response.block())));
         return this;
     }
 
+    private void fill(JSONObject jsonObject) {
 
-    public ArrayList<Jid> getContacts() {
-        return this.contacts;
-    }
-
-    public String getInstanceName() {
-        return instanceName;
     }
 }

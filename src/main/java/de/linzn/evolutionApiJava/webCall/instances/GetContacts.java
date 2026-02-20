@@ -10,45 +10,40 @@
  * or contact: niklas.linz@mirranet.de
  */
 
-package de.linzn.evolutionApiJava.api.messages;
+package de.linzn.evolutionApiJava.webCall.instances;
 
+
+import de.linzn.evolutionApiJava.api.Jid;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Objects;
 
-public class SetOnlineOffline {
+
+public class GetContacts {
     private final WebClient webClient;
     private final String instanceName;
-    private final boolean online;
+    private ArrayList<Jid> contacts;
 
-    private SetOnlineOffline(WebClient webClient, String instanceName, boolean online) {
+
+    private GetContacts(WebClient webClient, String instanceName) {
         this.webClient = webClient;
         this.instanceName = instanceName;
-        this.online = online;
     }
 
-    public static SetOnlineOffline builder(WebClient webClient, String instanceName, boolean online) {
-        return new SetOnlineOffline(webClient, instanceName, online).call();
+    public static GetContacts builder(WebClient webClient, String instanceName) {
+        return new GetContacts(webClient, instanceName).call();
     }
 
-    private SetOnlineOffline call() {
-        JSONObject jsonObject = new JSONObject();
-        if (online) {
-            jsonObject.put("presence", "available");
-        } else {
-            jsonObject.put("presence", "unavailable");
-        }
-
+    private GetContacts call() {
         Mono<String> response = this.webClient.post()
-                .uri("/instance/setPresence/" + instanceName)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(jsonObject.toString())
+                .uri("/chat/findContacts/" + instanceName)
                 .retrieve()
                 .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> Mono.error(new RuntimeException("Server Error")))
                 .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new RuntimeException("Client Error")))
@@ -56,11 +51,27 @@ public class SetOnlineOffline {
                 .timeout(Duration.ofSeconds(3))
                 .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)));
 
-        this.fill(new JSONObject(Objects.requireNonNull(response.block())));
+        JSONArray queryData = new JSONArray(Objects.requireNonNull(response.block()));
+
+        this.contacts = new ArrayList<>();
+        for (int i = 0; i < queryData.length(); i++) {
+            JSONObject obj = queryData.getJSONObject(i);
+            String jidString = obj.getString("remoteJid");
+            if (!jidString.contains("@lid") && jidString.contains("@s.whatsapp.net") && !jidString.contains(":")) {
+                Jid jid = new Jid(jidString);
+                contacts.add(jid);
+            }
+
+        }
         return this;
     }
 
-    private void fill(JSONObject jsonObject) {
 
+    public ArrayList<Jid> getContacts() {
+        return this.contacts;
+    }
+
+    public String getInstanceName() {
+        return instanceName;
     }
 }

@@ -10,12 +10,11 @@
  * or contact: niklas.linz@mirranet.de
  */
 
-package de.linzn.evolutionApiJava.api.messages;
+package de.linzn.evolutionApiJava.webCall.instances;
 
-import de.linzn.evolutionApiJava.api.Jid;
+
 import org.json.JSONObject;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
@@ -23,33 +22,25 @@ import reactor.util.retry.Retry;
 import java.time.Duration;
 import java.util.Objects;
 
-public class SendTypingPresence {
+
+public class ConnectionStatus {
     private final WebClient webClient;
     private final String instanceName;
-    private final Jid receiverJid;
-    private final int delay;
+    private String state;
 
-    private SendTypingPresence(WebClient webClient, String instanceName, Jid receiverJid, int delay) {
+
+    private ConnectionStatus(WebClient webClient, String instanceName) {
         this.webClient = webClient;
         this.instanceName = instanceName;
-        this.receiverJid = receiverJid;
-        this.delay = delay;
     }
 
-    public static SendTypingPresence builder(WebClient webClient, String instanceName, Jid receiverJid, int delay) {
-        return new SendTypingPresence(webClient, instanceName, receiverJid, delay).call();
+    public static ConnectionStatus builder(WebClient webClient, String instanceName) {
+        return new ConnectionStatus(webClient, instanceName).call();
     }
 
-    private SendTypingPresence call() {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("number", this.receiverJid);
-        jsonObject.put("presence", "composing");
-        jsonObject.put("delay", delay);
-
-        Mono<String> response = this.webClient.post()
-                .uri("/chat/sendPresence/" + instanceName)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(jsonObject.toString())
+    private ConnectionStatus call() {
+        Mono<String> response = this.webClient.get()
+                .uri("/instance/connectionState/" + instanceName)
                 .retrieve()
                 .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> Mono.error(new RuntimeException("Server Error")))
                 .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new RuntimeException("Client Error")))
@@ -57,11 +48,16 @@ public class SendTypingPresence {
                 .timeout(Duration.ofSeconds(3))
                 .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)));
 
-        this.fill(new JSONObject(Objects.requireNonNull(response.block())));
+        JSONObject queryData = new JSONObject(Objects.requireNonNull(response.block()));
+        this.state = queryData.getJSONObject("instance").getString("state");
         return this;
     }
 
-    private void fill(JSONObject jsonObject) {
+    public String getState() {
+        return state;
+    }
 
+    public String getInstanceName() {
+        return instanceName;
     }
 }

@@ -10,9 +10,10 @@
  * or contact: niklas.linz@mirranet.de
  */
 
-package de.linzn.evolutionApiJava.api.messages;
+package de.linzn.evolutionApiJava.webCall.messages;
 
 import de.linzn.evolutionApiJava.api.Jid;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -21,32 +22,43 @@ import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Objects;
 
-public class SendText {
+public class CreateStatusStorie {
     private final WebClient webClient;
     private final String instanceName;
-    private final Jid receiverJid;
-    private final String text;
+    private final String content;
+    private final ArrayList<Jid> contacts;
 
-    private SendText(WebClient webClient, String instanceName, Jid receiverJid, String text) {
+    private CreateStatusStorie(WebClient webClient, String instanceName, String content, ArrayList<Jid> contacts) {
         this.webClient = webClient;
         this.instanceName = instanceName;
-        this.receiverJid = receiverJid;
-        this.text = text;
+        this.content = content;
+        this.contacts = contacts;
     }
 
-    public static SendText builder(WebClient webClient, String instanceName, Jid receiverJid, String text) {
-        return new SendText(webClient, instanceName, receiverJid, text).call();
+    public static CreateStatusStorie builder(WebClient webClient, String instanceName, String content, ArrayList<Jid> contacts) {
+        return new CreateStatusStorie(webClient, instanceName, content, contacts).call();
     }
 
-    private SendText call() {
+    private CreateStatusStorie call() {
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("number", this.receiverJid);
-        jsonObject.put("text", this.text);
+        jsonObject.put("type", "text");
+        jsonObject.put("content", content);
+        jsonObject.put("caption", content);
+        jsonObject.put("backgroundColor", "#008000");
+        jsonObject.put("font", 2);
+        jsonObject.put("allContacts", false);
+        JSONArray list = new JSONArray();
+        for (Jid jid : contacts) {
+            list.put(jid.toString());
+        }
+        jsonObject.put("statusJidList", list);
+
 
         Mono<String> response = this.webClient.post()
-                .uri("/message/sendText/" + instanceName)
+                .uri("/message/sendStatus/" + instanceName)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(jsonObject.toString())
                 .retrieve()

@@ -10,7 +10,7 @@
  * or contact: niklas.linz@mirranet.de
  */
 
-package de.linzn.evolutionApiJava.api.instances;
+package de.linzn.evolutionApiJava.webCall.instances;
 
 
 import org.json.JSONArray;

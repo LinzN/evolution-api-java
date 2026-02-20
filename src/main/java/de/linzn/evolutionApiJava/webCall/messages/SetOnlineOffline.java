@@ -10,10 +10,8 @@
  * or contact: niklas.linz@mirranet.de
  */
 
-package de.linzn.evolutionApiJava.api.messages;
+package de.linzn.evolutionApiJava.webCall.messages;
 
-import de.linzn.evolutionApiJava.api.Jid;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -22,43 +20,33 @@ import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Objects;
 
-public class CreateStatusStorie {
+public class SetOnlineOffline {
     private final WebClient webClient;
     private final String instanceName;
-    private final String content;
-    private final ArrayList<Jid> contacts;
+    private final boolean online;
 
-    private CreateStatusStorie(WebClient webClient, String instanceName, String content, ArrayList<Jid> contacts) {
+    private SetOnlineOffline(WebClient webClient, String instanceName, boolean online) {
         this.webClient = webClient;
         this.instanceName = instanceName;
-        this.content = content;
-        this.contacts = contacts;
+        this.online = online;
     }
 
-    public static CreateStatusStorie builder(WebClient webClient, String instanceName, String content, ArrayList<Jid> contacts) {
-        return new CreateStatusStorie(webClient, instanceName, content, contacts).call();
+    public static SetOnlineOffline builder(WebClient webClient, String instanceName, boolean online) {
+        return new SetOnlineOffline(webClient, instanceName, online).call();
     }
 
-    private CreateStatusStorie call() {
+    private SetOnlineOffline call() {
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("type", "text");
-        jsonObject.put("content", content);
-        jsonObject.put("caption", content);
-        jsonObject.put("backgroundColor", "#008000");
-        jsonObject.put("font", 2);
-        jsonObject.put("allContacts", false);
-        JSONArray list = new JSONArray();
-        for (Jid jid : contacts) {
-            list.put(jid.toString());
+        if (online) {
+            jsonObject.put("presence", "available");
+        } else {
+            jsonObject.put("presence", "unavailable");
         }
-        jsonObject.put("statusJidList", list);
-
 
         Mono<String> response = this.webClient.post()
-                .uri("/message/sendStatus/" + instanceName)
+                .uri("/instance/setPresence/" + instanceName)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(jsonObject.toString())
                 .retrieve()
