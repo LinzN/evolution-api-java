@@ -10,10 +10,11 @@
  * or contact: niklas.linz@mirranet.de
  */
 
-package de.linzn.evolutionApiJava.event.defaultEvents;
+package de.linzn.evolutionApiJava.api.exceptions;
 
-import de.linzn.evolutionApiJava.api.TextMessage;
-import de.linzn.evolutionApiJava.event.EvolutionEvent;
+public class InvalidTextMessageFormat extends Exception {
 
-public record NewMessageEvent(TextMessage textMessage) implements EvolutionEvent {
+    public InvalidTextMessageFormat(Exception e) {
+        super(e.getMessage());
+    }
 }

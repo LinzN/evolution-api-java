@@ -14,6 +14,9 @@ package de.linzn.evolutionApiJava.poolMQ;
 
 import com.rabbitmq.client.DeliverCallback;
 import com.rabbitmq.client.Delivery;
+import de.linzn.evolutionApiJava.api.Call;
+import de.linzn.evolutionApiJava.api.TextMessage;
+import de.linzn.evolutionApiJava.event.defaultEvents.NewCallEvent;
 import de.linzn.evolutionApiJava.event.defaultEvents.NewMessageEvent;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -39,8 +42,84 @@ public class PoolListener implements DeliverCallback {
                 data.put("entries", input.getJSONArray("data"));
             }
 
-            if(poolApiType.equals(PoolApiType.MESSAGES_UPSERT)){
-                this.poolManager.evolutionApi.getEventHandler().fireEvent(new NewMessageEvent(data));
+            switch (poolApiType) {
+                case APPLICATION_STARTUP -> {
+                    //TODO handel APPLICATION_STARTUP
+                }
+                case CALL -> {
+                    this.poolManager.evolutionApi.getEventHandler().fireEvent(new NewCallEvent(Call.parse(data)));
+                }
+                case CHATS_DELETE -> {
+                    //TODO handel CHATS_DELETE
+                }
+                case CHATS_SET -> {
+                    //TODO handel CHATS_SET
+                }
+                case CHATS_UPDATE -> {
+                    //TODO handel CHATS_UPDATE
+                }
+                case CHATS_UPSERT -> {
+                    //TODO handel CHATS_UPSERT
+                }
+                case CONNECTION_UPDATE -> {
+                    //TODO handel CONNECTION_UPDATE
+                }
+                case CONTACTS_SET -> {
+                    //TODO handel CONTACTS_SET
+                }
+                case CONTACTS_UPDATE -> {
+                    //TODO handel CONTACTS_UPDATE
+                }
+                case CONTACTS_UPSERT -> {
+                    //TODO handel CONTACTS_UPSERT
+                }
+                case GROUP_PARTICIPANTS_UPDATE -> {
+                    //TODO handel GROUP_PARTICIPANTS_UPDATE
+                }
+                case GROUP_UPDATE -> {
+                    //TODO handel GROUP_UPDATE
+                }
+                case GROUPS_UPSERT -> {
+                    //TODO handel GROUPS_UPSERT
+                }
+                case LABELS_ASSOCIATION -> {
+                    //TODO handel LABELS_ASSOCIATION
+                }
+                case LABELS_EDIT -> {
+                    //TODO handel LABELS_EDIT
+                }
+                case LOGOUT_INSTANCE -> {
+                    //TODO handel LOGOUT_INSTANCE
+                }
+                case MESSAGES_DELETE -> {
+                    //TODO handel MESSAGES_DELETE
+                }
+                case MESSAGES_SET -> {
+                    //TODO handel MESSAGES_SET
+                }
+                case MESSAGES_UPDATE -> {
+                    //TODO handel MESSAGES_UPDATE
+                }
+                case MESSAGES_UPSERT ->
+                        this.poolManager.evolutionApi.getEventHandler().fireEvent(new NewMessageEvent(TextMessage.parse(data)));
+                case PRESENCE_UPDATE -> {
+                    //TODO handel PRESENCE_UPDATE
+                }
+                case QRCODE_UPDATED -> {
+                    //TODO handel QRCODE_UPDATED
+                }
+                case REMOVE_INSTANCE -> {
+                    //TODO handel REMOVE_INSTANCE
+                }
+                case SEND_MESSAGE -> {
+                    //TODO handel SEND_MESSAGE
+                }
+                case TYPEBOT_CHANGE_STATUS -> {
+                    //TODO handel TYPEBOT_CHANGE_STATUS
+                }
+                case TYPEBOT_START -> {
+                    //TODO handel TYPEBOT_START
+                }
             }
 
         } catch (Exception e) {

@@ -27,7 +27,6 @@ public class PoolManager {
     final EvolutionApi evolutionApi;
     private final ConnectionFactory factory;
     private final DeliverCallback deliverCallback;
-    private Channel channel;
 
     public PoolManager(EvolutionApi evolutionApi, String hostname, String username, String password, String virtualHost) {
         this.evolutionApi = evolutionApi;
@@ -43,12 +42,12 @@ public class PoolManager {
 
     public void connect() throws IOException, TimeoutException {
         Connection connection = this.factory.newConnection();
-        this.channel = connection.createChannel();
+        Channel channel = connection.createChannel();
         Map<String, Object> args = new HashMap<>();
         args.put("x-queue-type", "quorum");
 
         for (PoolApiType poolApiType : PoolApiType.values()) {
-            this.channel.queueDeclare(this.evolutionApi.getInstanceName() + "." + poolApiType.toEventId(), true, false, false, args);
+            channel.queueDeclare(this.evolutionApi.getInstanceName() + "." + poolApiType.toEventId(), true, false, false, args);
             channel.basicConsume(this.evolutionApi.getInstanceName() + "." + poolApiType.toEventId(), true, deliverCallback, consumerTag -> {
             });
         }

@@ -12,8 +12,9 @@
 
 package de.linzn.evolutionApiJava.event.defaultEvents;
 
-import de.linzn.evolutionApiJava.api.TextMessage;
+import de.linzn.evolutionApiJava.api.Call;
 import de.linzn.evolutionApiJava.event.EvolutionEvent;
+import org.json.JSONObject;
 
-public record NewMessageEvent(TextMessage textMessage) implements EvolutionEvent {
+public record NewCallEvent(Call call) implements EvolutionEvent {
 }

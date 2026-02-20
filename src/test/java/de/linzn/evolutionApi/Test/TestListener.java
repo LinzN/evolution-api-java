@@ -13,12 +13,13 @@
 package de.linzn.evolutionApi.Test;
 
 import de.linzn.evolutionApiJava.EvolutionApi;
+import de.linzn.evolutionApiJava.api.Call;
 import de.linzn.evolutionApiJava.event.EventPriority;
 import de.linzn.evolutionApiJava.event.EventSettings;
+import de.linzn.evolutionApiJava.event.defaultEvents.NewCallEvent;
 import de.linzn.evolutionApiJava.event.defaultEvents.NewMessageEvent;
-import org.json.JSONObject;
 
-public class TestListener  {
+public class TestListener {
     private EvolutionApi evolutionApi;
 
     public TestListener(EvolutionApi evolutionApi) {
@@ -28,7 +29,12 @@ public class TestListener  {
 
     @EventSettings(priority = EventPriority.NORMAL)
     public void onNewMessage(NewMessageEvent event) {
-        JSONObject data = event.getMessage();
-        evolutionApi.getLogger().INFO("DATA:" + data);
+        evolutionApi.getLogger().INFO("DATA1:" + event.textMessage().text());
+    }
+
+    @EventSettings(priority = EventPriority.NORMAL)
+    public void onNewMessage(NewCallEvent event) {
+        Call call = event.call();
+        evolutionApi.getLogger().INFO("DATA2:" + call.getStatus() + ":::" + call.getRemoteJid());
     }
 }

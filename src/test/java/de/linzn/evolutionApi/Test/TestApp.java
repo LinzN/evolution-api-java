@@ -23,7 +23,7 @@ public class TestApp {
 
     static void main() {
 
-        EvolutionApi evolutionApi = new EvolutionApi("http://10.50.0.22:8080", "xxxx", "MirraAPI", "10.50.0.22", "user", "xxx", null);
+        EvolutionApi evolutionApi = new EvolutionApi("http://10.50.0.22:8080", "xxxx", "MirraAPI", "10.50.0.22", "user", "password", null);
         try {
             evolutionApi.enable();
             evolutionApi.getEventHandler().register(new TestListener(evolutionApi));

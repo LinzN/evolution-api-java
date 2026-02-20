@@ -13,6 +13,10 @@
 package de.linzn.evolutionApiJava;
 
 import de.linzn.evolutionApiJava.api.Jid;
+import de.linzn.evolutionApiJava.event.EventHandler;
+import de.linzn.evolutionApiJava.logger.DefaultLogger;
+import de.linzn.evolutionApiJava.logger.EvolutionLogger;
+import de.linzn.evolutionApiJava.poolMQ.PoolManager;
 import de.linzn.evolutionApiJava.webCall.instances.ConnectionStatus;
 import de.linzn.evolutionApiJava.webCall.instances.FetchInstances;
 import de.linzn.evolutionApiJava.webCall.instances.GetContacts;
@@ -20,10 +24,6 @@ import de.linzn.evolutionApiJava.webCall.messages.CreateStatusStorie;
 import de.linzn.evolutionApiJava.webCall.messages.SendText;
 import de.linzn.evolutionApiJava.webCall.messages.SendTypingPresence;
 import de.linzn.evolutionApiJava.webCall.messages.SetOnlineOffline;
-import de.linzn.evolutionApiJava.event.EventHandler;
-import de.linzn.evolutionApiJava.logger.DefaultLogger;
-import de.linzn.evolutionApiJava.logger.EvolutionLogger;
-import de.linzn.evolutionApiJava.poolMQ.PoolManager;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.IOException;
