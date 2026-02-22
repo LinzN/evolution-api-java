@@ -10,13 +10,15 @@
  * or contact: niklas.linz@mirranet.de
  */
 
-package de.linzn.evolutionApiJava.webCall.messages;
+package de.linzn.evolutionApiJava.api.web.instances;
 
-import de.linzn.evolutionApiJava.api.Jid;
+
+import de.linzn.evolutionApiJava.EvolutionApi;
+import de.linzn.evolutionApiJava.api.JidClient;
+import de.linzn.evolutionApiJava.api.exceptions.InvalidJidClient;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
@@ -25,42 +27,25 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class CreateStatusStorie {
+
+public class GetContacts {
     private final WebClient webClient;
     private final String instanceName;
-    private final String content;
-    private final ArrayList<Jid> contacts;
+    private ArrayList<JidClient> contacts;
 
-    private CreateStatusStorie(WebClient webClient, String instanceName, String content, ArrayList<Jid> contacts) {
+
+    private GetContacts(WebClient webClient, String instanceName) {
         this.webClient = webClient;
         this.instanceName = instanceName;
-        this.content = content;
-        this.contacts = contacts;
     }
 
-    public static CreateStatusStorie builder(WebClient webClient, String instanceName, String content, ArrayList<Jid> contacts) {
-        return new CreateStatusStorie(webClient, instanceName, content, contacts).call();
+    public static GetContacts builder(WebClient webClient, String instanceName) {
+        return new GetContacts(webClient, instanceName).call();
     }
 
-    private CreateStatusStorie call() {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("type", "text");
-        jsonObject.put("content", content);
-        jsonObject.put("caption", content);
-        jsonObject.put("backgroundColor", "#008000");
-        jsonObject.put("font", 2);
-        jsonObject.put("allContacts", false);
-        JSONArray list = new JSONArray();
-        for (Jid jid : contacts) {
-            list.put(jid.toString());
-        }
-        jsonObject.put("statusJidList", list);
-
-
+    private GetContacts call() {
         Mono<String> response = this.webClient.post()
-                .uri("/message/sendStatus/" + instanceName)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(jsonObject.toString())
+                .uri("/chat/findContacts/" + instanceName)
                 .retrieve()
                 .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> Mono.error(new RuntimeException("Server Error")))
                 .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new RuntimeException("Client Error")))
@@ -68,11 +53,32 @@ public class CreateStatusStorie {
                 .timeout(Duration.ofSeconds(3))
                 .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)));
 
-        this.fill(new JSONObject(Objects.requireNonNull(response.block())));
+        JSONArray queryData = new JSONArray(Objects.requireNonNull(response.block()));
+
+        this.contacts = new ArrayList<>();
+        for (int i = 0; i < queryData.length(); i++) {
+            JSONObject obj = queryData.getJSONObject(i);
+            String jidString = obj.getString("remoteJid");
+
+            try {
+                JidClient clientId = EvolutionApi.getClientCache().requestOf(jidString);
+                if (!contacts.contains(clientId)) {
+                    contacts.add(clientId);
+                }
+            } catch (InvalidJidClient e) {
+                EvolutionApi.LOGGER().ERROR(e);
+            }
+
+        }
         return this;
     }
 
-    private void fill(JSONObject jsonObject) {
 
+    public ArrayList<JidClient> getContacts() {
+        return this.contacts;
+    }
+
+    public String getInstanceName() {
+        return instanceName;
     }
 }

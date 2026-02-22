@@ -10,7 +10,7 @@
  * or contact: niklas.linz@mirranet.de
  */
 
-package de.linzn.evolutionApiJava.poolMQ;
+package de.linzn.evolutionApiJava.rabbitmq;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -23,12 +23,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
-public class PoolManager {
+public class RabbitMQManager {
     final EvolutionApi evolutionApi;
     private final ConnectionFactory factory;
     private final DeliverCallback deliverCallback;
 
-    public PoolManager(EvolutionApi evolutionApi, String hostname, String username, String password, String virtualHost) {
+    public RabbitMQManager(EvolutionApi evolutionApi, String hostname, String username, String password, String virtualHost) {
         this.evolutionApi = evolutionApi;
         this.factory = new ConnectionFactory();
         this.factory.setHost(hostname);
@@ -37,7 +37,7 @@ public class PoolManager {
         if (virtualHost != null) {
             this.factory.setVirtualHost(virtualHost);
         }
-        this.deliverCallback = new PoolListener(this);
+        this.deliverCallback = new RabbitMQListener(this);
     }
 
     public void connect() throws IOException, TimeoutException {
@@ -46,9 +46,9 @@ public class PoolManager {
         Map<String, Object> args = new HashMap<>();
         args.put("x-queue-type", "quorum");
 
-        for (PoolApiType poolApiType : PoolApiType.values()) {
-            channel.queueDeclare(this.evolutionApi.getInstanceName() + "." + poolApiType.toEventId(), true, false, false, args);
-            channel.basicConsume(this.evolutionApi.getInstanceName() + "." + poolApiType.toEventId(), true, deliverCallback, consumerTag -> {
+        for (RabbitMQApiType rabbitMQApiType : RabbitMQApiType.values()) {
+            channel.queueDeclare(this.evolutionApi.getInstanceName() + "." + rabbitMQApiType.toEventId(), true, false, false, args);
+            channel.basicConsume(this.evolutionApi.getInstanceName() + "." + rabbitMQApiType.toEventId(), true, deliverCallback, consumerTag -> {
             });
         }
     }

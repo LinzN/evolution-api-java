@@ -10,21 +10,11 @@
  * or contact: niklas.linz@mirranet.de
  */
 
-package de.linzn.evolutionApiJava.api;
+package de.linzn.evolutionApiJava.api.exceptions;
 
-public class Jid {
-    String jid;
+public class InvalidJidClient extends Exception {
 
-    public Jid(String number) {
-        if (number.endsWith("@s.whatsapp.net")) {
-            this.jid = number;
-        } else {
-            this.jid = number + "@s.whatsapp.net";
-        }
-    }
-
-    @Override
-    public String toString() {
-        return this.jid;
+    public InvalidJidClient(String invalidJid) {
+        super("Invalid JidClient. Not possible to parse JID: " + invalidJid);
     }
 }

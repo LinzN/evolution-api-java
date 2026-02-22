@@ -12,86 +12,67 @@
 
 package de.linzn.evolutionApiJava;
 
-import de.linzn.evolutionApiJava.api.Jid;
+import de.linzn.evolutionApiJava.api.ClientCache;
+import de.linzn.evolutionApiJava.api.web.WebApiProvider;
 import de.linzn.evolutionApiJava.event.EventHandler;
 import de.linzn.evolutionApiJava.logger.DefaultLogger;
 import de.linzn.evolutionApiJava.logger.EvolutionLogger;
-import de.linzn.evolutionApiJava.poolMQ.PoolManager;
-import de.linzn.evolutionApiJava.webCall.instances.ConnectionStatus;
-import de.linzn.evolutionApiJava.webCall.instances.FetchInstances;
-import de.linzn.evolutionApiJava.webCall.instances.GetContacts;
-import de.linzn.evolutionApiJava.webCall.messages.CreateStatusStorie;
-import de.linzn.evolutionApiJava.webCall.messages.SendText;
-import de.linzn.evolutionApiJava.webCall.messages.SendTypingPresence;
-import de.linzn.evolutionApiJava.webCall.messages.SetOnlineOffline;
+import de.linzn.evolutionApiJava.rabbitmq.RabbitMQManager;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.concurrent.TimeoutException;
 
 public class EvolutionApi {
-    private final WebClient webClient;
-    private final PoolManager poolManager;
+    private static EvolutionLogger logger;
+    private static ClientCache clientCache;
+    private final WebApiProvider webApiProvider;
     private final String instanceName;
     private final EventHandler eventHandler;
-    private EvolutionLogger logger;
+    private RabbitMQManager rabbitMQManager;
 
 
-    public EvolutionApi(String baseURL, String authKey, String instanceName, String rabbitMQHostName, String rabbitMQUsername, String rabbitMQPassword, String rabbotMQVirtualHost) {
+    public EvolutionApi(String baseURL, String authKey, String instanceName) {
         this.instanceName = instanceName;
-        this.logger = new DefaultLogger();
+        logger = new DefaultLogger();
         this.eventHandler = new EventHandler(this);
-        this.webClient = WebClient.builder().baseUrl(baseURL).defaultHeader("apikey", authKey).build();
-        this.poolManager = new PoolManager(this, rabbitMQHostName, rabbitMQUsername, rabbitMQPassword, rabbotMQVirtualHost);
+        this.webApiProvider = new WebApiProvider(this, WebClient.builder().baseUrl(baseURL).defaultHeader("apikey", authKey).build());
+        if (clientCache == null) {
+            clientCache = new ClientCache(this);
+        }
+    }
+
+    public static ClientCache getClientCache() {
+        return clientCache;
+    }
+
+    public static EvolutionLogger LOGGER() {
+        return logger;
+    }
+
+    public void setRabbitMQ(String rabbitMQHostName, String rabbitMQUsername, String rabbitMQPassword, String rabbotMQVirtualHost) {
+        this.rabbitMQManager = new RabbitMQManager(this, rabbitMQHostName, rabbitMQUsername, rabbitMQPassword, rabbotMQVirtualHost);
     }
 
     public void registerLogger(EvolutionLogger evolutionLogger) {
-        this.logger = evolutionLogger;
+        logger = evolutionLogger;
     }
 
     public void enable() throws IOException, TimeoutException {
-        this.poolManager.connect();
+        if (this.rabbitMQManager != null) {
+            this.rabbitMQManager.connect();
+        }
     }
 
     public String getInstanceName() {
         return this.instanceName;
     }
 
-
-    public String getConnectionState() {
-        return ConnectionStatus.builder(this.webClient, this.instanceName).getState();
-    }
-
-    public ArrayList<FetchInstances.InstanceData> getFetchInstances() {
-        return FetchInstances.builder(this.webClient).getInstances();
-    }
-
-    public void sendTextMessage(Jid receiverJid, String textMessage) {
-        SendText.builder(this.webClient, this.instanceName, receiverJid, textMessage);
-    }
-
-    public void sendTypingPresence(Jid receiverJid, int delay) {
-        SendTypingPresence.builder(this.webClient, this.instanceName, receiverJid, delay);
-    }
-
-    public void SetOnlineOffline(boolean online) {
-        SetOnlineOffline.builder(this.webClient, this.instanceName, online);
-    }
-
-    public void CreateStatusStorie(String content, ArrayList<Jid> contacts) {
-        CreateStatusStorie.builder(this.webClient, this.instanceName, content, contacts);
-    }
-
-    public ArrayList<Jid> getContacts() {
-        return GetContacts.builder(this.webClient, this.instanceName).getContacts();
-    }
-
-    public EvolutionLogger getLogger() {
-        return logger;
-    }
-
     public EventHandler getEventHandler() {
         return eventHandler;
+    }
+
+    public WebApiProvider getWebApiProvider() {
+        return webApiProvider;
     }
 }

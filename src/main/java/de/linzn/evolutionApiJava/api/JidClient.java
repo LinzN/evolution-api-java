@@ -10,10 +10,20 @@
  * or contact: niklas.linz@mirranet.de
  */
 
-package de.linzn.evolutionApiJava.event.defaultEvents;
+package de.linzn.evolutionApiJava.api;
 
-import de.linzn.evolutionApiJava.api.Call;
-import de.linzn.evolutionApiJava.event.EvolutionEvent;
+public class JidClient {
+    String jid;
+    String lid;
 
-public record NewCallEvent(Call call) implements EvolutionEvent {
+    @Override
+    public String toString() {
+        if (jid != null) {
+            return jid;
+        } else if (lid != null) {
+            return lid;
+        } else {
+            return null;
+        }
+    }
 }

@@ -44,7 +44,7 @@ public class EventHandler {
             if (annotation != null) {
                 Class<?>[] params = m.getParameterTypes();
                 if (params.length != 1) {
-                    evolutionApi.getLogger().ERROR("Method " + m + " in class " + listener.getClass() + " annotated with " + annotation + " does not have single argument");
+                    EvolutionApi.LOGGER().ERROR("Method " + m + " in class " + listener.getClass() + " annotated with " + annotation + " does not have single argument");
                     continue;
                 }
                 Class<EvolutionEvent> iEvent = (Class<EvolutionEvent>) params[0];
@@ -66,7 +66,7 @@ public class EventHandler {
         try {
             method.invoke(classInstance, event);
         } catch (IllegalAccessException | InvocationTargetException e) {
-            evolutionApi.getLogger().ERROR(e);
+            EvolutionApi.LOGGER().ERROR(e);
         }
     }
 
@@ -97,7 +97,7 @@ public class EventHandler {
      * @param event EvolutionEvent to call in classInstance
      */
     public void fireEvent(final EvolutionEvent event) {
-        evolutionApi.getLogger().DEBUG("Fire event " + event.getName());
+        EvolutionApi.LOGGER().DEBUG("Fire event " + event.getName());
         if (!event.isCanceled()) {
             fireEventPriority(event, EventPriority.HIGH);
         }
@@ -122,7 +122,7 @@ public class EventHandler {
                         try {
                             callMethod(event, method, classInstance);
                         } catch (Exception e) {
-                            evolutionApi.getLogger().ERROR(e);
+                            EvolutionApi.LOGGER().ERROR(e);
                         }
                     }
                 }

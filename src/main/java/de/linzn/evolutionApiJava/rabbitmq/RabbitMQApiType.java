@@ -10,9 +10,9 @@
  * or contact: niklas.linz@mirranet.de
  */
 
-package de.linzn.evolutionApiJava.poolMQ;
+package de.linzn.evolutionApiJava.rabbitmq;
 
-public enum PoolApiType {
+public enum RabbitMQApiType {
     APPLICATION_STARTUP,
     CALL,
     CHATS_DELETE,
@@ -40,8 +40,8 @@ public enum PoolApiType {
     TYPEBOT_CHANGE_STATUS,
     TYPEBOT_START;
 
-    public static PoolApiType fromEventId(String eventId) {
-        for (PoolApiType val : values()) {
+    public static RabbitMQApiType fromEventId(String eventId) {
+        for (RabbitMQApiType val : values()) {
             if (val.toEventId().equalsIgnoreCase(eventId)) {
                 return val;
             }

@@ -12,42 +12,46 @@
 
 package de.linzn.evolutionApiJava.api;
 
+import de.linzn.evolutionApiJava.EvolutionApi;
 import de.linzn.evolutionApiJava.api.exceptions.InvalidCallFormat;
-import de.linzn.evolutionApiJava.api.exceptions.InvalidTextMessageFormat;
 import org.json.JSONObject;
 
 public class Call {
 
-    private final Jid remoteJid;
-    private final String status;
+    private final JidClient remoteClientId;
+    private final CallStatus status;
     private final boolean isVideo;
 
-    private Call(Jid remoteJid, String status, boolean isVideo) {
-        this.remoteJid = remoteJid;
+    private Call(JidClient remoteClientId, CallStatus status, boolean isVideo) {
+        this.remoteClientId = remoteClientId;
         this.status = status;
         this.isVideo = isVideo;
     }
 
     public static Call parse(JSONObject jsonObject) throws InvalidCallFormat {
         try {
-            Jid jsonRemoteJid = new Jid(jsonObject.getString("from"));
-            String jsonStatus = jsonObject.getString("status");
-            boolean jsonIsVideo= jsonObject.getBoolean("isVideo");
-            return new Call(jsonRemoteJid, jsonStatus, jsonIsVideo);
+            JidClient jsonRemoteClientId = EvolutionApi.getClientCache().requestOf(jsonObject.getString("from"));
+            CallStatus jsonStatus = CallStatus.valueOf(jsonObject.getString("status").toUpperCase());
+            boolean jsonIsVideo = jsonObject.getBoolean("isVideo");
+            return new Call(jsonRemoteClientId, jsonStatus, jsonIsVideo);
         } catch (Exception e) {
             throw new InvalidCallFormat(e);
         }
     }
 
-    public Jid getRemoteJid() {
-        return remoteJid;
+    public JidClient getRemoteJid() {
+        return remoteClientId;
     }
 
-    public String getStatus() {
+    public CallStatus getStatus() {
         return status;
     }
 
     public boolean isVideo() {
         return isVideo;
+    }
+
+    public enum CallStatus {
+        OFFER, RINGING;
     }
 }

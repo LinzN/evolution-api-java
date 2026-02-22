@@ -10,10 +10,11 @@
  * or contact: niklas.linz@mirranet.de
  */
 
-package de.linzn.evolutionApiJava.poolMQ;
+package de.linzn.evolutionApiJava.rabbitmq;
 
 import com.rabbitmq.client.DeliverCallback;
 import com.rabbitmq.client.Delivery;
+import de.linzn.evolutionApiJava.EvolutionApi;
 import de.linzn.evolutionApiJava.api.Call;
 import de.linzn.evolutionApiJava.api.TextMessage;
 import de.linzn.evolutionApiJava.event.defaultEvents.NewCallEvent;
@@ -23,18 +24,18 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
-public class PoolListener implements DeliverCallback {
-    private final PoolManager poolManager;
+public class RabbitMQListener implements DeliverCallback {
+    private final RabbitMQManager rabbitMQManager;
 
-    public PoolListener(PoolManager poolManager) {
-        this.poolManager = poolManager;
+    public RabbitMQListener(RabbitMQManager rabbitMQManager) {
+        this.rabbitMQManager = rabbitMQManager;
     }
 
     @Override
     public void handle(String s, Delivery delivery) throws IOException {
         try {
             JSONObject input = new JSONObject(new String(delivery.getBody(), "UTF-8"));
-            PoolApiType poolApiType = PoolApiType.fromEventId(input.getString("event"));
+            RabbitMQApiType rabbitMQApiType = RabbitMQApiType.fromEventId(input.getString("event"));
             JSONObject data = new JSONObject();
             if (input.get("data") instanceof JSONObject) {
                 data = input.getJSONObject("data");
@@ -42,12 +43,12 @@ public class PoolListener implements DeliverCallback {
                 data.put("entries", input.getJSONArray("data"));
             }
 
-            switch (poolApiType) {
+            switch (rabbitMQApiType) {
                 case APPLICATION_STARTUP -> {
                     //TODO handel APPLICATION_STARTUP
                 }
                 case CALL -> {
-                    this.poolManager.evolutionApi.getEventHandler().fireEvent(new NewCallEvent(Call.parse(data)));
+                    this.rabbitMQManager.evolutionApi.getEventHandler().fireEvent(new NewCallEvent(Call.parse(data)));
                 }
                 case CHATS_DELETE -> {
                     //TODO handel CHATS_DELETE
@@ -101,7 +102,7 @@ public class PoolListener implements DeliverCallback {
                     //TODO handel MESSAGES_UPDATE
                 }
                 case MESSAGES_UPSERT ->
-                        this.poolManager.evolutionApi.getEventHandler().fireEvent(new NewMessageEvent(TextMessage.parse(data)));
+                        this.rabbitMQManager.evolutionApi.getEventHandler().fireEvent(new NewMessageEvent(TextMessage.parse(data)));
                 case PRESENCE_UPDATE -> {
                     //TODO handel PRESENCE_UPDATE
                 }
@@ -123,7 +124,7 @@ public class PoolListener implements DeliverCallback {
             }
 
         } catch (Exception e) {
-            this.poolManager.evolutionApi.getLogger().ERROR(e);
+            EvolutionApi.LOGGER().ERROR(e);
         }
     }
 }

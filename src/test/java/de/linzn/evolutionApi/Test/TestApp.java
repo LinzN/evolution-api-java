@@ -13,7 +13,7 @@
 package de.linzn.evolutionApi.Test;
 
 import de.linzn.evolutionApiJava.EvolutionApi;
-import de.linzn.evolutionApiJava.api.Jid;
+import de.linzn.evolutionApiJava.api.JidClient;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,31 +23,19 @@ public class TestApp {
 
     static void main() {
 
-        EvolutionApi evolutionApi = new EvolutionApi("http://10.50.0.22:8080", "xxxx", "MirraAPI", "10.50.0.22", "user", "password", null);
+        EvolutionApi evolutionApi = new EvolutionApi("http://10.50.0.22:8080", "x", "x");
         try {
-            evolutionApi.enable();
+            //evolutionApi.setRabbitMQ("10.50.0.22", "x", "x", null);
             evolutionApi.getEventHandler().register(new TestListener(evolutionApi));
+            evolutionApi.enable();
         } catch (IOException | TimeoutException e) {
             throw new RuntimeException(e);
         }
+        ArrayList<JidClient> clients = evolutionApi.getWebApiProvider().getContacts();
 
-        evolutionApi.SetOnlineOffline(true);
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        //
-        evolutionApi.SetOnlineOffline(false);
-        ArrayList<Jid> jids = evolutionApi.getContacts();
-        for (Jid jid : jids) {
-            System.out.println(jid);
+        for (JidClient client : clients) {
+            EvolutionApi.LOGGER().INFO(client);
         }
 
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
     }
 }

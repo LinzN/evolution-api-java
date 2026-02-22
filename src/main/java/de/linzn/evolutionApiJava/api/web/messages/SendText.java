@@ -10,9 +10,9 @@
  * or contact: niklas.linz@mirranet.de
  */
 
-package de.linzn.evolutionApiJava.webCall.messages;
+package de.linzn.evolutionApiJava.api.web.messages;
 
-import de.linzn.evolutionApiJava.api.Jid;
+import de.linzn.evolutionApiJava.api.JidClient;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -23,31 +23,30 @@ import reactor.util.retry.Retry;
 import java.time.Duration;
 import java.util.Objects;
 
-public class SendTypingPresence {
+public class SendText {
     private final WebClient webClient;
     private final String instanceName;
-    private final Jid receiverJid;
-    private final int delay;
+    private final JidClient receiverClientId;
+    private final String text;
 
-    private SendTypingPresence(WebClient webClient, String instanceName, Jid receiverJid, int delay) {
+    private SendText(WebClient webClient, String instanceName, JidClient receiverClientId, String text) {
         this.webClient = webClient;
         this.instanceName = instanceName;
-        this.receiverJid = receiverJid;
-        this.delay = delay;
+        this.receiverClientId = receiverClientId;
+        this.text = text;
     }
 
-    public static SendTypingPresence builder(WebClient webClient, String instanceName, Jid receiverJid, int delay) {
-        return new SendTypingPresence(webClient, instanceName, receiverJid, delay).call();
+    public static SendText builder(WebClient webClient, String instanceName, JidClient receiverClientId, String text) {
+        return new SendText(webClient, instanceName, receiverClientId, text).call();
     }
 
-    private SendTypingPresence call() {
+    private SendText call() {
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("number", this.receiverJid);
-        jsonObject.put("presence", "composing");
-        jsonObject.put("delay", delay);
+        jsonObject.put("number", this.receiverClientId);
+        jsonObject.put("text", this.text);
 
         Mono<String> response = this.webClient.post()
-                .uri("/chat/sendPresence/" + instanceName)
+                .uri("/message/sendText/" + instanceName)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(jsonObject.toString())
                 .retrieve()

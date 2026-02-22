@@ -10,9 +10,9 @@
  * or contact: niklas.linz@mirranet.de
  */
 
-package de.linzn.evolutionApiJava.webCall.messages;
+package de.linzn.evolutionApiJava.api.web.messages;
 
-import de.linzn.evolutionApiJava.api.Jid;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -21,32 +21,38 @@ import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
-public class SendText {
+public class GetJidNumbers {
     private final WebClient webClient;
     private final String instanceName;
-    private final Jid receiverJid;
-    private final String text;
+    private final ArrayList<String> numbers;
+    private Map<String, JSONObject> jids;
 
-    private SendText(WebClient webClient, String instanceName, Jid receiverJid, String text) {
+    private GetJidNumbers(WebClient webClient, String instanceName, ArrayList<String> numbers) {
         this.webClient = webClient;
         this.instanceName = instanceName;
-        this.receiverJid = receiverJid;
-        this.text = text;
+        this.numbers = numbers;
     }
 
-    public static SendText builder(WebClient webClient, String instanceName, Jid receiverJid, String text) {
-        return new SendText(webClient, instanceName, receiverJid, text).call();
+    public static GetJidNumbers builder(WebClient webClient, String instanceName, ArrayList<String> numbers) {
+        return new GetJidNumbers(webClient, instanceName, numbers).call();
     }
 
-    private SendText call() {
+    private GetJidNumbers call() {
+        JSONArray jsonArray = new JSONArray();
+        for (String number : numbers) {
+            jsonArray.put(number);
+        }
+
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("number", this.receiverJid);
-        jsonObject.put("text", this.text);
+        jsonObject.put("numbers", jsonArray);
 
         Mono<String> response = this.webClient.post()
-                .uri("/message/sendText/" + instanceName)
+                .uri("/chat/whatsappNumbers/" + instanceName)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(jsonObject.toString())
                 .retrieve()
@@ -56,11 +62,19 @@ public class SendText {
                 .timeout(Duration.ofSeconds(3))
                 .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2)));
 
-        this.fill(new JSONObject(Objects.requireNonNull(response.block())));
+        this.jids = new HashMap<>();
+        this.fill(new JSONArray(Objects.requireNonNull(response.block())));
         return this;
     }
 
-    private void fill(JSONObject jsonObject) {
+    private void fill(JSONArray jsonArray) {
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject obj = jsonArray.getJSONObject(i);
+            this.jids.put(obj.getString("number"), obj);
+        }
+    }
 
+    public Map<String, JSONObject> getJids() {
+        return jids;
     }
 }

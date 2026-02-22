@@ -12,26 +12,26 @@
 
 package de.linzn.evolutionApiJava.api;
 
+import de.linzn.evolutionApiJava.EvolutionApi;
 import de.linzn.evolutionApiJava.api.exceptions.InvalidTextMessageFormat;
 import org.json.JSONObject;
 
-public record TextMessage(Jid remoteJid, String text, String pushName, boolean fromMe) {
+public record TextMessage(JidClient remoteClientId, String text, String pushName, boolean fromMe) {
 
-    public TextMessage(Jid remoteJid, String text, String pushName) {
-        this(remoteJid, text, pushName, false);
+    public TextMessage(JidClient remoteClientId, String text, String pushName) {
+        this(remoteClientId, text, pushName, false);
     }
 
     public static TextMessage parse(JSONObject jsonObject) throws InvalidTextMessageFormat {
         try {
-
-            Jid jsonRemoteJid = new Jid(jsonObject.getJSONObject("key").getString("remoteJid"));
+            JidClient jsonRemoteClientId = EvolutionApi.getClientCache().requestOf(jsonObject.getJSONObject("key").getString("remoteJid"));
             String jsonPushName = "Unknown";
             if (!jsonObject.isNull("pushName")) {
                 jsonPushName = jsonObject.getString("pushName");
             }
             String jsonTextMessage = jsonObject.getJSONObject("message").getString("conversation");
             boolean jsonFromMe = jsonObject.getJSONObject("key").getBoolean("fromMe");
-            return new TextMessage(jsonRemoteJid, jsonTextMessage, jsonPushName, jsonFromMe);
+            return new TextMessage(jsonRemoteClientId, jsonTextMessage, jsonPushName, jsonFromMe);
         } catch (Exception e) {
             throw new InvalidTextMessageFormat(e);
         }

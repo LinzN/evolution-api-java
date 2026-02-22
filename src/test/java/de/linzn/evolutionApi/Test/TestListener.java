@@ -29,12 +29,12 @@ public class TestListener {
 
     @EventSettings(priority = EventPriority.NORMAL)
     public void onNewMessage(NewMessageEvent event) {
-        evolutionApi.getLogger().INFO("DATA1:" + event.textMessage().text());
+        EvolutionApi.LOGGER().INFO("DATA1:" + event.textMessage().text());
     }
 
     @EventSettings(priority = EventPriority.NORMAL)
     public void onNewMessage(NewCallEvent event) {
         Call call = event.call();
-        evolutionApi.getLogger().INFO("DATA2:" + call.getStatus() + ":::" + call.getRemoteJid());
+        EvolutionApi.LOGGER().INFO("DATA2:" + call.getStatus() + ":::" + call.getRemoteJid() + "::::" + call.getStatus());
     }
 }
