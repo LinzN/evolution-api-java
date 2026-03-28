@@ -26,4 +26,8 @@ public class JidClient {
             return null;
         }
     }
+
+    public boolean hasJid(){
+        return this.jid != null;
+    }
 }

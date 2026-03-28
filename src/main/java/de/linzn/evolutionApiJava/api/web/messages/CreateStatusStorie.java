@@ -52,7 +52,9 @@ public class CreateStatusStorie {
         jsonObject.put("allContacts", false);
         JSONArray list = new JSONArray();
         for (JidClient clientId : contacts) {
-            list.put(clientId.toString());
+            if(clientId.hasJid()) {
+                list.put(clientId.toString());
+            }
         }
         jsonObject.put("statusJidList", list);
 
