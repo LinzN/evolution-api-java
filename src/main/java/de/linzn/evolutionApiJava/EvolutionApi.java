@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
 public class EvolutionApi {
+    private static final int MAX_RESPONSE_SIZE = 100 * 1024 * 1024;
     private static EvolutionLogger logger;
     private static ClientCache clientCache;
     private final WebApiProvider webApiProvider;
@@ -36,7 +37,9 @@ public class EvolutionApi {
         this.instanceName = instanceName;
         logger = new DefaultLogger();
         this.eventHandler = new EventHandler(this);
-        this.webApiProvider = new WebApiProvider(this, WebClient.builder().baseUrl(baseURL).defaultHeader("apikey", authKey).build());
+        this.webApiProvider = new WebApiProvider(this, WebClient.builder().baseUrl(baseURL).defaultHeader("apikey", authKey)
+                /* media downloads are returned as base64 and exceed the default buffer of 256 KB */
+                .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(MAX_RESPONSE_SIZE)).build());
         if (clientCache == null) {
             clientCache = new ClientCache(this);
         }

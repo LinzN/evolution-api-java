@@ -14,6 +14,8 @@ package de.linzn.evolutionApiJava.api.web;
 
 import de.linzn.evolutionApiJava.EvolutionApi;
 import de.linzn.evolutionApiJava.api.JidClient;
+import de.linzn.evolutionApiJava.api.MediaAttachment;
+import de.linzn.evolutionApiJava.api.TextMessage;
 import de.linzn.evolutionApiJava.api.web.instances.ConnectionStatus;
 import de.linzn.evolutionApiJava.api.web.instances.FetchInstances;
 import de.linzn.evolutionApiJava.api.web.instances.GetContacts;
@@ -64,5 +66,15 @@ public class WebApiProvider {
 
     public Map<String, JSONObject> getJidNumbers(ArrayList<String> numbers) {
         return GetJidNumbers.builder(this.webClient, this.evolutionApi.getInstanceName(), numbers).getJids();
+    }
+
+    /**
+     * Load the content of a media message. Returns the attachment of the message unchanged if the webhook
+     * already delivered the content.
+     *
+     * @return the attachment with {@link MediaAttachment#base64()} filled
+     */
+    public MediaAttachment downloadMedia(TextMessage message) {
+        return GetMediaBase64.builder(this.webClient, this.evolutionApi.getInstanceName(), message).getMedia();
     }
 }
