@@ -77,4 +77,23 @@ public class WebApiProvider {
     public MediaAttachment downloadMedia(TextMessage message) {
         return GetMediaBase64.builder(this.webClient, this.evolutionApi.getInstanceName(), message).getMedia();
     }
+
+    /**
+     * Send a file.
+     *
+     * @param mediaType image, video, document or audio
+     * @param mimeType  MIME type, may be null
+     * @param fileName  file name shown for documents, may be null
+     * @param caption   text below the media, may be null
+     */
+    public void sendMedia(JidClient receiverClientId, String mediaType, String mimeType, String fileName, String caption, byte[] data) {
+        SendMedia.builder(this.webClient, this.evolutionApi.getInstanceName(), receiverClientId, mediaType, mimeType, fileName, caption, data);
+    }
+
+    /**
+     * Send audio as recorded voice message.
+     */
+    public void sendVoiceMessage(JidClient receiverClientId, byte[] audio) {
+        SendWhatsAppAudio.builder(this.webClient, this.evolutionApi.getInstanceName(), receiverClientId, audio);
+    }
 }

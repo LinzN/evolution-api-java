@@ -1,0 +1,67 @@
+/*
+ * Copyright (c) 2026 MirraNET, Niklas Linz. All rights reserved.
+ *
+ * This file is part of the MirraNET project and is licensed under the
+ * GNU Lesser General Public License v3.0 (LGPLv3).
+ *
+ * You may use, distribute and modify this code under the terms
+ * of the LGPLv3 license. You should have received a copy of the
+ * license along with this file. If not, see <https://www.gnu.org/licenses/lgpl-3.0.html>
+ * or contact: niklas.linz@mirranet.de
+ */
+
+package de.linzn.evolutionApiJava.api.web.messages;
+
+import de.linzn.evolutionApiJava.api.JidClient;
+import org.json.JSONObject;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
+
+import java.time.Duration;
+import java.util.Base64;
+import java.util.Objects;
+
+/**
+ * Sends audio as a recorded voice message ({@code POST /message/sendWhatsAppAudio/{instance}}).
+ * Evolution API converts the audio to the WhatsApp voice format.
+ */
+public class SendWhatsAppAudio {
+    private final WebClient webClient;
+    private final String instanceName;
+    private final JidClient receiverClientId;
+    private final byte[] data;
+
+    private SendWhatsAppAudio(WebClient webClient, String instanceName, JidClient receiverClientId, byte[] data) {
+        this.webClient = webClient;
+        this.instanceName = instanceName;
+        this.receiverClientId = receiverClientId;
+        this.data = data;
+    }
+
+    public static SendWhatsAppAudio builder(WebClient webClient, String instanceName, JidClient receiverClientId, byte[] data) {
+        return new SendWhatsAppAudio(webClient, instanceName, receiverClientId, data).call();
+    }
+
+    private SendWhatsAppAudio call() {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("number", this.receiverClientId);
+        jsonObject.put("audio", Base64.getEncoder().encodeToString(this.data));
+
+        Mono<String> response = this.webClient.post()
+                .uri("/message/sendWhatsAppAudio/" + instanceName)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(jsonObject.toString())
+                .retrieve()
+                .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> Mono.error(new RuntimeException("Server Error")))
+                .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new RuntimeException("Client Error")))
+                .bodyToMono(String.class)
+                .timeout(Duration.ofSeconds(60))
+                .retryWhen(Retry.fixedDelay(2, Duration.ofSeconds(3)));
+
+        Objects.requireNonNull(response.block());
+        return this;
+    }
+}
